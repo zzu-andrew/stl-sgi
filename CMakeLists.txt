@@ -17,6 +17,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
 #add_definitions("-pg -o0 -g")
 #add_definitions("-O0 -g")
 
+# 以下编译来自gcc的编译验证
+
 include_directories(inc)
 
 
