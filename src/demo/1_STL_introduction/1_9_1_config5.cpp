@@ -38,7 +38,7 @@ struct TestClass<const T*, T*> {
         cout << "const T*, T*" << endl;
     }
 };
-
+// 特殊化设计
 template <>
 struct TestClass<int32_t, char> {
     TestClass() {
