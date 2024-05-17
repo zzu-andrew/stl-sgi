@@ -31,7 +31,7 @@
 #ifndef __SGI_STL_INTERNAL_CONSTRUCT_H
 #define __SGI_STL_INTERNAL_CONSTRUCT_H
 
-#include <new.h>
+#include <new.h>   // 使用placement new 需要使用此文件
 
 __STL_BEGIN_NAMESPACE
 
@@ -45,11 +45,13 @@ __STL_BEGIN_NAMESPACE
 
 template <class _T1, class _T2>
 inline void _Construct(_T1* __p, const _T2& __value) {
+  //  使用指定的内存来初始化__T1类对象
   new ((void*) __p) _T1(__value);
 }
 
 template <class _T1>
 inline void _Construct(_T1* __p) {
+  //  使用placement order 使用当前内存new一个对象，其实还是使用了new里面创建独享时调用构造函数的功能
   new ((void*) __p) _T1();
 }
 
@@ -73,6 +75,7 @@ template <class _ForwardIterator, class _Tp>
 inline void 
 __destroy(_ForwardIterator __first, _ForwardIterator __last, _Tp*)
 {
+  //   真正的析构函数是否真的值的调用
   typedef typename __type_traits<_Tp>::has_trivial_destructor
           _Trivial_destructor;
   __destroy_aux(__first, __last, _Trivial_destructor());
@@ -94,12 +97,12 @@ inline void _Destroy(wchar_t*, wchar_t*) {}
 
 // --------------------------------------------------
 // Old names from the HP STL.
-
+// 通过new place order功能，调用构造函数
 template <class _T1, class _T2>
 inline void construct(_T1* __p, const _T2& __value) {
   _Construct(__p, __value);
 }
-
+// 调用析构函数
 template <class _T1>
 inline void construct(_T1* __p) {
   _Construct(__p);
@@ -112,6 +115,7 @@ inline void destroy(_Tp* __pointer) {
 
 template <class _ForwardIterator>
 inline void destroy(_ForwardIterator __first, _ForwardIterator __last) {
+  // 利用 __type_traits 求取最适当的措施
   _Destroy(__first, __last);
 }
 

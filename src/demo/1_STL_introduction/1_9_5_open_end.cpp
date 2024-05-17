@@ -5,6 +5,7 @@
 using namespace std;
 
 namespace sil{
+    // 按照迭代器自行实现算法
     template <class InputIterator, class T>
     InputIterator find(InputIterator first, InputIterator last, const T& value) {
         while (first!=last && *first!=value)
@@ -29,7 +30,8 @@ public:
     }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     vector<int> ia = {0, 1, 2, 3, 4};
     vector<int>::iterator it = sil::find(ia.begin(), ia.end(), 4);
     if (it!= ia.end()) {

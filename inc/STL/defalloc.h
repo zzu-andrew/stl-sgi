@@ -61,6 +61,8 @@ public:
     typedef const T& const_reference;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
+
+
     pointer allocate(size_type n) { 
 	return ::allocate((difference_type)n, (pointer)0);
     }

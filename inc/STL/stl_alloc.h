@@ -15,6 +15,15 @@
  *   You should not attempt to use it directly.
  */
 
+
+/*
+ *
+ * C++的内存配置基本操作是::operator new()，内存释放基本操作想::operator delete()。这两个全局函数相当于C的malloc()和free()函数。是的，正是如此，SGI正是以malloc()和free()完成内存的配置与释放
+考虑到小型区块所可能造成的内存破碎问题，SGI设计了双层级配置器，第级配置器直接使用mal1oc()和free()，第二级配置器则视情况采用不同的策
+ 略:当配置区块超过128bytes时，视之为“足够大”，便调用第一级配置器;当配置区块小于 128 bytes 时，视之为 “过小”，为了降低额外负担(overhead，见 2.2.6节)，
+ 便采用复杂的memory pool整理方式，而不再求助于第一级配置器。整个设计究竟只开放第一级配置器，或是同时开放第二级配置器，取决于USE_MALLOC6是否被定义(唔，我们可以轻易测试出来，SGISTL并未定义USE_MALLOC):
+ * */
+
 #ifndef __SGI_STL_INTERNAL_ALLOC_H
 #define __SGI_STL_INTERNAL_ALLOC_H
 
@@ -248,7 +257,7 @@ public:
 # ifdef __USE_MALLOC
 
 typedef malloc_alloc alloc;
-typedef malloc_alloc single_client_alloc;
+typedef malloc_alloc single_client_alloc;    // 令alloc 为一级配置器
 
 # else
 
