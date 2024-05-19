@@ -305,11 +305,13 @@ private:
     enum {_MAX_BYTES = 128};
     enum {_NFREELISTS = 16}; // _MAX_BYTES/_ALIGN
 # endif
+  // 将数值上调为8的倍数
   static size_t
   _S_round_up(size_t __bytes) 
     { return (((__bytes) + (size_t) _ALIGN-1) & ~((size_t) _ALIGN - 1)); }
 
 __PRIVATE:
+  //   使用共同体将内存使用压榨到极致
   union _Obj {
         union _Obj* _M_free_list_link;
         char _M_client_data[1];    /* The client sees this.        */
@@ -321,6 +323,7 @@ private:
 # else
     static _Obj* __STL_VOLATILE _S_free_list[_NFREELISTS]; 
 # endif
+  //  以下函数区块大小，绝顶使用第n号free-list， n从0起算
   static  size_t _S_freelist_index(size_t __bytes) {
         return (((__bytes) + (size_t)_ALIGN-1)/(size_t)_ALIGN - 1);
   }
@@ -332,6 +335,7 @@ private:
   static char* _S_chunk_alloc(size_t __size, int& __nobjs);
 
   // Chunk allocation state.
+  // 静态变量
   static char* _S_start_free;
   static char* _S_end_free;
   static size_t _S_heap_size;
@@ -357,11 +361,12 @@ public:
   static void* allocate(size_t __n)
   {
     void* __ret = 0;
-
+    // 如果大于128就使用一级配置，直接申请内存
     if (__n > (size_t) _MAX_BYTES) {
       __ret = malloc_alloc::allocate(__n);
     }
     else {
+      //  根据当前字节大小，超找自己应该在那个链表
       _Obj* __STL_VOLATILE* __my_free_list
           = _S_free_list + _S_freelist_index(__n);
       // Acquire the lock here with a constructor call.
@@ -372,7 +377,9 @@ public:
       _Lock __lock_instance;
 #     endif
       _Obj* __RESTRICT __result = *__my_free_list;
+      // 如果查找链表失败
       if (__result == 0)
+        //  没有内存，则重新填充空闲链表
         __ret = _S_refill(_S_round_up(__n));
       else {
         *__my_free_list = __result -> _M_free_list_link;
@@ -386,9 +393,11 @@ public:
   /* __p may not be 0 */
   static void deallocate(void* __p, size_t __n)
   {
+    //  大于128直接调用一级空间配置器释放空间
     if (__n > (size_t) _MAX_BYTES)
       malloc_alloc::deallocate(__p, __n);
     else {
+      //   超找对应的链表
       _Obj* __STL_VOLATILE*  __my_free_list
           = _S_free_list + _S_freelist_index(__n);
       _Obj* __q = (_Obj*)__p;
@@ -398,6 +407,7 @@ public:
       /*REFERENCED*/
       _Lock __lock_instance;
 #       endif /* _NOTHREADS */
+      // 将当前空闲空间填充会对应小内存链表
       __q -> _M_free_list_link = *__my_free_list;
       *__my_free_list = __q;
       // lock is released here
@@ -439,7 +449,9 @@ __default_alloc_template<__threads, __inst>::_S_chunk_alloc(size_t __size,
                                                             int& __nobjs)
 {
     char* __result;
+    // 需要的大小就是个数乘以每个对象的大小
     size_t __total_bytes = __size * __nobjs;
+    // 剩余字节就是内存池结束位置，减去内存池开始位置。
     size_t __bytes_left = _S_end_free - _S_start_free;
 
     if (__bytes_left >= __total_bytes) {
