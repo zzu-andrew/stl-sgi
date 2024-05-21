@@ -23,3 +23,4 @@ foreach(v ${CPP_SRC_LIST})
 endforeach()
 
 
+add_executable(stl_test main.cpp)

@@ -114,11 +114,12 @@ __STL_BEGIN_NAMESPACE
 # endif
 #endif
 
+//   非型别参数__inst没有使用
 template <int __inst>
 class __malloc_alloc_template {
 
 private:
-
+  //  函数指针，用于处理内存不足的情况
   static void* _S_oom_malloc(size_t);
   static void* _S_oom_realloc(void*, size_t);
 
@@ -130,23 +131,29 @@ public:
 
   static void* allocate(size_t __n)
   {
+    //  一级配置中直接是哟个malloc
     void* __result = malloc(__n);
+    // 内存不足使用专用内存不足申请接口申请内存
     if (0 == __result) __result = _S_oom_malloc(__n);
     return __result;
   }
 
   static void deallocate(void* __p, size_t /* __n */)
   {
+    //  一级配置直接使用free
     free(__p);
   }
 
   static void* reallocate(void* __p, size_t /* old_sz */, size_t __new_sz)
   {
+    //  一级配置中直接使用realloc
     void* __result = realloc(__p, __new_sz);
+    // 申请失败 使用_S_oom_realloc
     if (0 == __result) __result = _S_oom_realloc(__p, __new_sz);
     return __result;
   }
 
+  // 通过该函数让调用者设置处理句柄，一般在申请不到内存的时候，用来释放部分不使用的内存
   static void (* __set_malloc_handler(void (*__f)()))()
   {
     void (* __old)() = __malloc_alloc_oom_handler;
@@ -170,11 +177,11 @@ __malloc_alloc_template<__inst>::_S_oom_malloc(size_t __n)
     void (* __my_malloc_handler)();
     void* __result;
 
-    for (;;) {
+    for (;;) {  // 一直不断尝试、配置、再释放，再配置
         __my_malloc_handler = __malloc_alloc_oom_handler;
         if (0 == __my_malloc_handler) { __THROW_BAD_ALLOC; }
-        (*__my_malloc_handler)();
-        __result = malloc(__n);
+        (*__my_malloc_handler)();  // 这里企图释放部分内存
+        __result = malloc(__n); // 再次尝试配置内存
         if (__result) return(__result);
     }
 }
@@ -196,6 +203,8 @@ void* __malloc_alloc_template<__inst>::_S_oom_realloc(void* __p, size_t __n)
 
 typedef __malloc_alloc_template<0> malloc_alloc;
 
+// SGI 为alloc 包赚一下，让接口的使用规范符号STL调用规范
+// 第个成员函数全部为转调用
 template<class _Tp, class _Alloc>
 class simple_alloc {
 
@@ -206,6 +215,7 @@ public:
       { return (_Tp*) _Alloc::allocate(sizeof (_Tp)); }
     static void deallocate(_Tp* __p, size_t __n)
       { if (0 != __n) _Alloc::deallocate(__p, __n * sizeof (_Tp)); }
+    //   单纯转调用，没有做任何处理
     static void deallocate(_Tp* __p)
       { _Alloc::deallocate(__p, sizeof (_Tp)); }
 };
@@ -418,6 +428,7 @@ public:
 
 } ;
 
+//  令 alloc  为第二级配置器
 typedef __default_alloc_template<__NODE_ALLOCATOR_THREADS, 0> alloc;
 typedef __default_alloc_template<false, 0> single_client_alloc;
 
