@@ -136,13 +136,17 @@ public:
   }
 
   ~_Vector_base() { _M_deallocate(_M_start, _M_end_of_storage - _M_start); }
-
+// 只让本类以及子类中使用该成员
 protected:
+  //  空间头
   _Tp* _M_start;
+  // 空间尾部
   _Tp* _M_finish;
+  //存储数据的 尾部
   _Tp* _M_end_of_storage;
-
+  // 空间配置器
   typedef simple_alloc<_Tp, _Alloc> _M_data_allocator;
+  // 使用空间配置器进行内存的申请和释放
   _Tp* _M_allocate(size_t __n)
     { return _M_data_allocator::allocate(__n); }
   void _M_deallocate(_Tp* __p, size_t __n) 
@@ -150,7 +154,7 @@ protected:
 };
 
 #endif /* __STL_USE_STD_ALLOCATORS */
-
+// vector里面的迭代器就是普通指针 其指向的类型就是 _Tp*，所以在实现时需要保证vector内部维护的事一整块空间
 template <class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) >
 class vector : protected _Vector_base<_Tp, _Alloc> 
 {

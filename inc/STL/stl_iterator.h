@@ -261,6 +261,8 @@ inline bool operator!=(
 #endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
 
 
+#define __STL_CLASS_PARTIAL_SPECIALIZATION 1
+
 #ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
 
 // This is the new version of reverse_iterator, as defined in the
@@ -294,12 +296,12 @@ public:
   explicit reverse_iterator(iterator_type __x) : current(__x) {}
 
   reverse_iterator(const _Self& __x) : current(__x.current) {}
-#ifdef __STL_MEMBER_TEMPLATES
+//#ifdef __STL_MEMBER_TEMPLATES
   template <class _Iter>
   reverse_iterator(const reverse_iterator<_Iter>& __x)
     : current(__x.base()) {}
-#endif /* __STL_MEMBER_TEMPLATES */
-    
+//#endif /* __STL_MEMBER_TEMPLATES */
+
   iterator_type base() const { return current; }
   reference operator*() const {
     _Iterator __tmp = current;
