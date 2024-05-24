@@ -3,30 +3,57 @@
 //
 
 #include <iostream>
+#include <algorithm>
+#include <cstring>
 
-template <class T>
-struct MyIter {
-    typedef T value_type;  // 内嵌型别声明(netsted type)
-    T* ptr; //
-    explicit MyIter(T* p = 0) : ptr (p) {}
-    T& operator*() const { return *ptr;}
-    // ...
+
+class XorString
+{
+public:
+    char operator()(const char * lpStr) {
+
+        std::cout << "char *" << std::endl;
+        auto len = strlen(lpStr);
+        int32_t result = 0;
+        for (auto i = 0; i < len; i++) {
+            result ^= lpStr[i];
+        }
+        return (char)result;
+    }
+
+
+    char operator()(const std::string& str) {
+        std::cout << "&" << std::endl;
+        int32_t result = 0;
+        for (char i : str) {
+            result ^= i;
+        }
+        return (char )result;
+    }
+
+    char operator()(const std::string&& str) {
+        std::cout << "&&" << std::endl;
+        return operator()(str);
+    }
+
 };
 
-template <class I>
-typename I::value_type   // 这里是函数的返回值
-func (I ite)
-{
-    return ite;
-}
 
 
-// 使用原生指针类型，或者模板类中没有特意特化T*的类型，当函数按照指针进行调用时上述函数是无法推导出返回value_type是什么的
 
 
 int main(int argc, char **argv) {
 
 
+    XorString    xorString;
+
+
+    std::cout << (int) xorString("test")<< std::endl;
+
+    std::string name = "test";
+
+    std::cout << (int)xorString(name) << std::endl;
+    std::cout << (int)xorString(std::move(name)) << std::endl;
 
 
     return 0;

@@ -45,6 +45,7 @@ struct _List_node_base {
   _List_node_base* _M_prev;
 };
 
+// 节点类型
 template <class _Tp>
 struct _List_node : public _List_node_base {
   _Tp _M_data;
@@ -55,11 +56,13 @@ struct _List_iterator_base {
   typedef ptrdiff_t                  difference_type;
   typedef bidirectional_iterator_tag iterator_category;
 
-  _List_node_base* _M_node;
+  // 全是public类型的成员变量
+  _List_node_base* _M_node; // 迭代器内部当然要有一个普通的指针，指向list节点
 
   _List_iterator_base(_List_node_base* __x) : _M_node(__x) {}
   _List_iterator_base() {}
 
+  // 真正执行　＋＋的其实就是链表向前进
   void _M_incr() { _M_node = _M_node->_M_next; }
   void _M_decr() { _M_node = _M_node->_M_prev; }
 
@@ -86,6 +89,7 @@ struct _List_iterator : public _List_iterator_base {
   _List_iterator() {}
   _List_iterator(const iterator& __x) : _List_iterator_base(__x._M_node) {}
 
+  // 对节点取值其实取的事_M_data的值
   reference operator*() const { return ((_Node*) _M_node)->_M_data; }
 
 #ifndef __SGI_STL_NO_ARROW_OPERATOR
@@ -96,6 +100,7 @@ struct _List_iterator : public _List_iterator_base {
     this->_M_incr();
     return *this;
   }
+  //　＋＋　分为左＋＋和右　＋＋，这里这个是右＋＋
   _Self operator++(int) { 
     _Self __tmp = *this;
     this->_M_incr();
@@ -328,7 +333,7 @@ protected:
 
 public:
   explicit list(const allocator_type& __a = allocator_type()) : _Base(__a) {}
-
+  // 让node本身指向一个空的数据，这样 begin就是next指向的下个元素
   iterator begin()             { return (_Node*)(_M_node->_M_next); }
   const_iterator begin() const { return (_Node*)(_M_node->_M_next); }
 
@@ -345,6 +350,7 @@ public:
   const_reverse_iterator rend() const
     { return const_reverse_iterator(begin()); }
 
+  //   node next指向本身，说明node节点中没有任何数据
   bool empty() const { return _M_node->_M_next == _M_node; }
   size_type size() const {
     size_type __result = 0;
