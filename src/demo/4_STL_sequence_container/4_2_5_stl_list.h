@@ -5,6 +5,8 @@
 #ifndef STL_SGI_4_2_5_STL_LIST_H
 #define STL_SGI_4_2_5_STL_LIST_H
 
+#include <iostream>
+#include <list>
 
 struct _List_node_base {
     _List_node_base* _M_next;

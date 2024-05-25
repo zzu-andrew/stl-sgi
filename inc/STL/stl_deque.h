@@ -96,10 +96,10 @@ struct _Deque_iterator {
 
   typedef _Deque_iterator _Self;
 
-  _Tp* _M_cur;
-  _Tp* _M_first;
-  _Tp* _M_last;
-  _Map_pointer _M_node;
+  _Tp* _M_cur; // 缓存区中现行的cur元素
+  _Tp* _M_first; // 缓冲区头
+  _Tp* _M_last; //缓冲区尾部
+  _Map_pointer _M_node;  // 指向管控中心
 
   _Deque_iterator(_Tp* __x, _Map_pointer __y) 
     : _M_cur(__x), _M_first(*__y),
@@ -156,6 +156,7 @@ struct _Deque_iterator {
       difference_type __node_offset =
         __offset > 0 ? __offset / difference_type(_S_buffer_size())
                    : -difference_type((-__offset - 1) / _S_buffer_size()) - 1;
+      //first 和 last一直存储在对应节点的位置
       _M_set_node(_M_node + __node_offset);
       _M_cur = _M_first + 
         (__offset - __node_offset * difference_type(_S_buffer_size()));
@@ -175,7 +176,7 @@ struct _Deque_iterator {
     _Self __tmp = *this;
     return __tmp -= __n;
   }
-
+  // 调用operator* 和 operator +
   reference operator[](difference_type __n) const { return *(*this + __n); }
 
   bool operator==(const _Self& __x) const { return _M_cur == __x._M_cur; }
@@ -349,6 +350,7 @@ protected:
   enum { _S_initial_map_size = 8 };
 
 protected:
+  // 指向指针的指针，deque这里使用其进行数据块的链接
   _Tp** _M_map;
   size_t _M_map_size;  
   iterator _M_start;
@@ -386,6 +388,7 @@ _Deque_base<_Tp,_Alloc>::_M_initialize_map(size_t __num_elements)
   size_t __num_nodes = 
     __num_elements / __deque_buf_size(sizeof(_Tp)) + 1;
 
+  // 一个map最少管理8个节点
   _M_map_size = max((size_t) _S_initial_map_size, __num_nodes + 2);
   _M_map = _M_allocate_map(_M_map_size);
 
