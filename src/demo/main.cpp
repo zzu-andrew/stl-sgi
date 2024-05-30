@@ -5,39 +5,44 @@
 #include <iostream>
 #include <algorithm>
 #include <cstring>
+#include <map>
+#include <set>
+#include <memory>
+
+#include <vector>
+
+using namespace std;
 
 
-class XorString
-{
+
+
+
+class Data {
 public:
-    char operator()(const char * lpStr) {
-
-        std::cout << "char *" << std::endl;
-        auto len = strlen(lpStr);
-        int32_t result = 0;
-        for (auto i = 0; i < len; i++) {
-            result ^= lpStr[i];
-        }
-        return (char)result;
+    Data () {
+        std::cout << "test" << std::endl;
     }
 
+    ~Data() {
+        std::cout << "~test" << std::endl;
 
-    char operator()(const std::string& str) {
-        std::cout << "&" << std::endl;
-        int32_t result = 0;
-        for (char i : str) {
-            result ^= i;
-        }
-        return (char )result;
     }
 
-    char operator()(const std::string&& str) {
-        std::cout << "&&" << std::endl;
-        return operator()(str);
-    }
-
+    std::set<int32_t>   sets;
 };
 
+
+
+
+struct NamePair {
+   bool operator <(const NamePair& other) const
+   {
+        return index < other.index;
+   }
+
+   int index;
+   int xor1;
+};
 
 
 
@@ -45,15 +50,15 @@ public:
 int main(int argc, char **argv) {
 
 
-    XorString    xorString;
+    std::set<int32_t> data1,data2,data3;
+    data1.insert(1);
+    data2.insert(1);
+    data3.insert(1);
+
+    auto sets = data1 + data2 + data3;
 
 
-    std::cout << (int) xorString("test")<< std::endl;
 
-    std::string name = "test";
-
-    std::cout << (int)xorString(name) << std::endl;
-    std::cout << (int)xorString(std::move(name)) << std::endl;
 
 
     return 0;

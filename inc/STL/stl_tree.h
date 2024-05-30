@@ -73,17 +73,20 @@ struct _Rb_tree_node_base
   typedef _Rb_tree_Color_type _Color_type;
   typedef _Rb_tree_node_base* _Base_ptr;
 
-  _Color_type _M_color; 
-  _Base_ptr _M_parent;
-  _Base_ptr _M_left;
-  _Base_ptr _M_right;
+  _Color_type _M_color;  // 节点颜色
+  _Base_ptr _M_parent;  // RB -tree很多操作都需要知道其父节点
+  _Base_ptr _M_left; // 左侧节点
+  _Base_ptr _M_right; // 右侧节点
 
+  // 最小最值按照树型查找都非常方便
+
+  // 左侧最小，右侧都是最大值，只要向左找，就能找到最小值
   static _Base_ptr _S_minimum(_Base_ptr __x)
   {
     while (__x->_M_left != 0) __x = __x->_M_left;
     return __x;
   }
-
+  // 右侧都是最大值
   static _Base_ptr _S_maximum(_Base_ptr __x)
   {
     while (__x->_M_right != 0) __x = __x->_M_right;
@@ -95,47 +98,60 @@ template <class _Value>
 struct _Rb_tree_node : public _Rb_tree_node_base
 {
   typedef _Rb_tree_node<_Value>* _Link_type;
-  _Value _M_value_field;
+  _Value _M_value_field;   // 节点值
 };
 
 
 struct _Rb_tree_base_iterator
 {
+  //  parent left right tree
   typedef _Rb_tree_node_base::_Base_ptr _Base_ptr;
+  //   ability to bidirectional_iterator
   typedef bidirectional_iterator_tag iterator_category;
   typedef ptrdiff_t difference_type;
-  _Base_ptr _M_node;
+  //  parent left right tree
+  _Base_ptr _M_node;   // 基面集成了所有的指针，指向父节点和两个左右子节点
 
   void _M_increment()
   {
-    if (_M_node->_M_right != 0) {
+    if (_M_node->_M_right != 0) {   // 如果有右子节点，就向右走
       _M_node = _M_node->_M_right;
-      while (_M_node->_M_left != 0)
-        _M_node = _M_node->_M_left;
+      while (_M_node->_M_left != 0)  // 然后一直走到左子树到底
+        _M_node = _M_node->_M_left; //右子树最左边的值就是当前大于节点最小的值，树底部最后一个值就是
     }
     else {
+      //   如果当前节点没有右子树
       _Base_ptr __y = _M_node->_M_parent;
-      while (_M_node == __y->_M_right) {
-        _M_node = __y;
+      while (_M_node == __y->_M_right) {  // 如果现行节点是父节点的右节点
+        _M_node = __y;  // 直接向上追溯 ，直到不为右节点为止
         __y = __y->_M_parent;
       }
-      if (_M_node->_M_right != __y)
+
+      // 如果根节点刚好没有右子节点
+      if (_M_node->_M_right != __y)  // 此时的右节点不为父节点，那么父节点就是答案
         _M_node = __y;
+
+
     }
   }
 
+  // 只有operator--里面调用
   void _M_decrement()
   {
+    //  如果是红节点，并且父节点的父节点等于自己，只有node为header的时候才会发生
     if (_M_node->_M_color == _S_rb_tree_red &&
         _M_node->_M_parent->_M_parent == _M_node)
       _M_node = _M_node->_M_right;
+    // 如果有左子节点
     else if (_M_node->_M_left != 0) {
       _Base_ptr __y = _M_node->_M_left;
+      // 其左子节点最大值就是答案
       while (__y->_M_right != 0)
         __y = __y->_M_right;
       _M_node = __y;
     }
     else {
+      //  非根节点，并且没有左子节点
       _Base_ptr __y = _M_node->_M_parent;
       while (_M_node == __y->_M_left) {
         _M_node = __y;
@@ -168,7 +184,8 @@ struct _Rb_tree_iterator : public _Rb_tree_base_iterator
 #ifndef __SGI_STL_NO_ARROW_OPERATOR
   pointer operator->() const { return &(operator*()); }
 #endif /* __SGI_STL_NO_ARROW_OPERATOR */
-
+  //
+  // 前进后退两种迭代方法 双向
   _Self& operator++() { _M_increment(); return *this; }
   _Self operator++(int) {
     _Self __tmp = *this;
@@ -495,6 +512,7 @@ struct _Rb_tree_base
 
 #else /* __STL_USE_STD_ALLOCATORS */
 
+// 红黑树基本盘
 template <class _Tp, class _Alloc>
 struct _Rb_tree_base
 {
@@ -506,10 +524,12 @@ struct _Rb_tree_base
   ~_Rb_tree_base() { _M_put_node(_M_header); }
 
 protected:
+  //   比较特殊，红黑树实现中的特殊技巧
   _Rb_tree_node<_Tp>* _M_header;
 
   typedef simple_alloc<_Rb_tree_node<_Tp>, _Alloc> _Alloc_type;
 
+  // 一种特殊分配器分配和管理红黑树节点
   _Rb_tree_node<_Tp>* _M_get_node()
     { return _Alloc_type::allocate(1); }
   void _M_put_node(_Rb_tree_node<_Tp>* __p)
@@ -552,6 +572,8 @@ protected:
   _Link_type _M_create_node(const value_type& __x)
   {
     _Link_type __tmp = _M_get_node();
+    // 使用申请的空间构造自己，只构造value字段
+    // 并且构造的时候通过 x的值进行构造
     __STL_TRY {
       construct(&__tmp->_M_value_field, __x);
     }
@@ -559,6 +581,7 @@ protected:
     return __tmp;
   }
 
+  // 克隆一个节点
   _Link_type _M_clone_node(_Link_type __x)
   {
     _Link_type __tmp = _M_create_node(__x->_M_value_field);
@@ -570,13 +593,17 @@ protected:
 
   void destroy_node(_Link_type __p)
   {
+    //  析构内容
     destroy(&__p->_M_value_field);
+    // 释放内存，是否真的释放有alloc来决定
     _M_put_node(__p);
   }
 
 protected:
   size_type _M_node_count; // keeps track of size of tree
+  // 用于值对比的仿函数
   _Compare _M_key_compare;
+
 
   _Link_type& _M_root() const 
     { return (_Link_type&) _M_header->_M_parent; }
@@ -585,6 +612,7 @@ protected:
   _Link_type& _M_rightmost() const 
     { return (_Link_type&) _M_header->_M_right; }
 
+  //  用于方便获取节点x的成员
   static _Link_type& _S_left(_Link_type __x)
     { return (_Link_type&)(__x->_M_left); }
   static _Link_type& _S_right(_Link_type __x)
@@ -611,6 +639,8 @@ protected:
   static _Color_type& _S_color(_Base_ptr __x)
     { return (_Color_type&)(_Link_type(__x)->_M_color); }
 
+  //  特殊函数，极值使用，有极大值也有极小值
+
   static _Link_type _S_minimum(_Link_type __x) 
     { return (_Link_type)  _Rb_tree_node_base::_S_minimum(__x); }
 
@@ -618,6 +648,7 @@ protected:
     { return (_Link_type) _Rb_tree_node_base::_S_maximum(__x); }
 
 public:
+  //            迭代器定义
   typedef _Rb_tree_iterator<value_type, reference, pointer> iterator;
   typedef _Rb_tree_iterator<value_type, const_reference, const_pointer> 
           const_iterator;
@@ -673,18 +704,24 @@ public:
 
 private:
   void _M_empty_initialize() {
+    //  特殊处理，Header不是根节点  这样可以赋予特殊的红色用于区分
     _S_color(_M_header) = _S_rb_tree_red; // used to distinguish header from 
                                           // __root, in iterator.operator++
-    _M_root() = 0;
+  // 刚开始root就是header的parent指向空
+  _M_root() = 0;
+    // 最左侧指向自己
     _M_leftmost() = _M_header;
+    // 最右侧也指向自己
     _M_rightmost() = _M_header;
   }
 
 public:    
                                 // accessors:
   _Compare key_comp() const { return _M_key_compare; }
+  // 迭代器开始begin，从最小值，也就是最左侧开始进行迭代
   iterator begin() { return _M_leftmost(); }
   const_iterator begin() const { return _M_leftmost(); }
+  // 结束点在Header特殊实现，这样从begin到 header结束，header有结束的判断标准
   iterator end() { return _M_header; }
   const_iterator end() const { return _M_header; }
   reverse_iterator rbegin() { return reverse_iterator(end()); }
