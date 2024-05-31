@@ -703,8 +703,10 @@ public:
   operator=(const _Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>& __x);
 
 private:
+  //            特殊实现的红黑树，header和ｒｏｏｔ互为对方的parent
   void _M_empty_initialize() {
     //  特殊处理，Header不是根节点  这样可以赋予特殊的红色用于区分
+    // 令Header为红色，用来区分header和root
     _S_color(_M_header) = _S_rb_tree_red; // used to distinguish header from 
                                           // __root, in iterator.operator++
   // 刚开始root就是header的parent指向空
@@ -733,9 +735,12 @@ public:
     return const_reverse_iterator(begin());
   } 
   bool empty() const { return _M_node_count == 0; }
+  // size为实际值
   size_type size() const { return _M_node_count; }
+  // 这里的最大值为树允许的最大成员个数
   size_type max_size() const { return size_type(-1); }
 
+  // 交换两棵树对比函数都进行交换？不同的对比函数能进来？还是同样的对比函数指向不同的函数体同样需要交换？
   void swap(_Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>& __t) {
     __STD::swap(_M_header, __t._M_header);
     __STD::swap(_M_node_count, __t._M_node_count);
@@ -930,15 +935,17 @@ _Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>
 {
   _Link_type __y = _M_header;
   _Link_type __x = _M_root();
+  // 按照大小找出位置
   while (__x != 0) {
     __y = __x;
     __x = _M_key_compare(_KeyOfValue()(__v), _S_key(__x)) ? 
             _S_left(__x) : _S_right(__x);
   }
+  // 按照位置插入到树中
   return _M_insert(__x, __y, __v);
 }
 
-
+// 插入新值，节点键值不允许重复，重复则插入无效
 template <class _Key, class _Value, class _KeyOfValue, 
           class _Compare, class _Alloc>
 pair<typename _Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>::iterator, 
@@ -949,20 +956,24 @@ _Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>
   _Link_type __y = _M_header;
   _Link_type __x = _M_root();
   bool __comp = true;
-  while (__x != 0) {
+  while (__x != 0) {   // 从根节点开始向下搜寻合适的点，一般根也是中间那位，刚好符合查找的复杂度
     __y = __x;
+    // 对比两个value的值
     __comp = _M_key_compare(_KeyOfValue()(__v), _S_key(__x));
+    // 根据对比结果选择左边还是右边，这样通过对比函数用户就能控制树的构成
     __x = __comp ? _S_left(__x) : _S_right(__x);
   }
+  // 离开之后，能保证y就是要插入节点的父节点
   iterator __j = iterator(__y);   
-  if (__comp)
-    if (__j == begin())     
+  if (__comp)   // 需要选择左
+    if (__j == begin())       // 当前插入地方的父节点为最左侧树
       return pair<iterator,bool>(_M_insert(__x, __y, __v), true);
     else
-      --__j;
+      --__j; // 使用迭代器特性查找到合适位置
+  // 如果经过上述查找位置之后还是找不到合适位置
   if (_M_key_compare(_S_key(__j._M_node), _KeyOfValue()(__v)))
     return pair<iterator,bool>(_M_insert(__x, __y, __v), true);
-  return pair<iterator,bool>(__j, false);
+  return pair<iterator,bool>(__j, false);  // 插入失败，表明新值与原先的值重复，因为父节点左边和右边都不能跟v对比出结果
 }
 
 

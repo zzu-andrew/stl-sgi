@@ -15,50 +15,32 @@ using namespace std;
 
 
 
-
-
-class Data {
-public:
-    Data () {
-        std::cout << "test" << std::endl;
-    }
-
-    ~Data() {
-        std::cout << "~test" << std::endl;
-
-    }
-
-    std::set<int32_t>   sets;
+struct Sds {
+    int32_t length;
+    char buff[];
 };
 
 
-
-
-struct NamePair {
-   bool operator <(const NamePair& other) const
-   {
-        return index < other.index;
-   }
-
-   int index;
-   int xor1;
-};
-
-
-
+Sds GetBuffer(Sds * lpSds)
+{
+    Sds ret = *lpSds;
+    return ret;
+}
 
 int main(int argc, char **argv) {
+    std::allocator<char> alloc;
 
 
-    std::set<int32_t> data1,data2,data3;
-    data1.insert(1);
-    data2.insert(1);
-    data3.insert(1);
+    Sds *lpSds = (Sds*)alloc.allocate(sizeof(Sds) + 124);
+    lpSds->length = 124;
 
-    auto sets = data1 + data2 + data3;
+    alloc.
 
 
+    auto sds = GetBuffer(lpSds);
 
+    printf("sds lpBuff = %p, o lp = %p\n", sds.buff, lpSds->buff);
+    alloc.deallocate()
 
 
     return 0;
