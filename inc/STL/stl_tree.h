@@ -268,20 +268,29 @@ _Rb_tree_rotate_right(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
   __x->_M_parent = __y;
 }
 
+// 调整RB-tree旋转以及改变颜色
+// 任何插入操作完毕之火都需要进行一次调整操作，将树的状态调整符合RB-tree的要求
 inline void 
 _Rb_tree_rebalance(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 {
+  //  新增节点必须为红色
   __x->_M_color = _S_rb_tree_red;
+  // 父节点为红色
   while (__x != __root && __x->_M_parent->_M_color == _S_rb_tree_red) {
+    //  在左分支
     if (__x->_M_parent == __x->_M_parent->_M_parent->_M_left) {
+      //  大伯所在节点
       _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_right;
+      //
       if (__y && __y->_M_color == _S_rb_tree_red) {
         __x->_M_parent->_M_color = _S_rb_tree_black;
         __y->_M_color = _S_rb_tree_black;
         __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
+        // 向上层检查
         __x = __x->_M_parent->_M_parent;
       }
       else {
+        //   父节点为黑或者没有伯父节点，并且自己在右节点
         if (__x == __x->_M_parent->_M_right) {
           __x = __x->_M_parent;
           _Rb_tree_rotate_left(__x, __root);
@@ -297,6 +306,7 @@ _Rb_tree_rebalance(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
         __x->_M_parent->_M_color = _S_rb_tree_black;
         __y->_M_color = _S_rb_tree_black;
         __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
+        // 向上层检查
         __x = __x->_M_parent->_M_parent;
       }
       else {
@@ -897,15 +907,18 @@ typename _Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>::iterator
 _Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>
   ::_M_insert(_Base_ptr __x_, _Base_ptr __y_, const _Value& __v)
 {
+  //    x 为新插入点，y为插入点父节点， V为新值
   _Link_type __x = (_Link_type) __x_;
   _Link_type __y = (_Link_type) __y_;
   _Link_type __z;
 
+  //
   if (__y == _M_header || __x != 0 || 
       _M_key_compare(_KeyOfValue()(__v), _S_key(__y))) {
     __z = _M_create_node(__v);
     _S_left(__y) = __z;               // also makes _M_leftmost() = __z 
                                       //    when __y == _M_header
+    // 首次插入数据
     if (__y == _M_header) {
       _M_root() = __z;
       _M_rightmost() = __z;
@@ -1198,8 +1211,10 @@ _Rb_tree<_Key,_Value,_KeyOfValue,_Compare,_Alloc>::find(const _Key& __k)
   _Link_type __y = _M_header;      // Last node which is not less than __k. 
   _Link_type __x = _M_root();      // Current node. 
 
+  //
   while (__x != 0) 
-    if (!_M_key_compare(_S_key(__x), __k))
+      // 等于的时候才是0 并不是大于小于吧？
+      if (!_M_key_compare(_S_key(__x), __k))
       __y = __x, __x = _S_left(__x);
     else
       __x = _S_right(__x);

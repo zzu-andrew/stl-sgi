@@ -55,6 +55,7 @@ inline bool operator<(const set<_Key,_Compare,_Alloc>& __x,
                       const set<_Key,_Compare,_Alloc>& __y);
 
 
+// 对RB-tree的套用
 template <class _Key, class _Compare, class _Alloc>
 class set {
   // requirements:
@@ -67,9 +68,11 @@ public:
 
   typedef _Key     key_type;
   typedef _Key     value_type;
+  // key与value使用对比函数相同
   typedef _Compare key_compare;
   typedef _Compare value_compare;
 private:
+  // 采用红黑树来实现set的底层
   typedef _Rb_tree<key_type, value_type, 
                   _Identity<value_type>, key_compare, _Alloc> _Rep_type;
   _Rep_type _M_t;  // red-black tree representing set
@@ -78,6 +81,7 @@ public:
   typedef typename _Rep_type::const_pointer const_pointer;
   typedef typename _Rep_type::const_reference reference;
   typedef typename _Rep_type::const_reference const_reference;
+  // 迭代器本身就是const类型的迭代器
   typedef typename _Rep_type::const_iterator iterator;
   typedef typename _Rep_type::const_iterator const_iterator;
   typedef typename _Rep_type::const_reverse_iterator reverse_iterator;
@@ -145,7 +149,8 @@ public:
   void swap(set<_Key,_Compare,_Alloc>& __x) { _M_t.swap(__x._M_t); }
 
   // insert/erase
-  pair<iterator,bool> insert(const value_type& __x) { 
+  pair<iterator,bool> insert(const value_type& __x) {
+    //   set 一定要使用RB-tree的 insert_unique，因为其不允许有相同值出现
     pair<typename _Rep_type::iterator, bool> __p = _M_t.insert_unique(__x); 
     return pair<iterator, bool>(__p.first, __p.second);
   }
