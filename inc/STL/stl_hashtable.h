@@ -229,6 +229,7 @@ private:
   hasher                _M_hash;
   key_equal             _M_equals;
   _ExtractKey           _M_get_key;
+  // 使用vector作为hash桶
   vector<_Node*,_Alloc> _M_buckets;
   size_type             _M_num_elements;
 
@@ -567,14 +568,17 @@ private:
 
 };
 
+// 需要注意的是hashtable没有逆向迭代器
 template <class _Val, class _Key, class _HF, class _ExK, class _EqK, 
           class _All>
 _Hashtable_iterator<_Val,_Key,_HF,_ExK,_EqK,_All>&
 _Hashtable_iterator<_Val,_Key,_HF,_ExK,_EqK,_All>::operator++()
 {
   const _Node* __old = _M_cur;
+  // 如果存在就是他，否则就向下遍历下个非零的值
   _M_cur = _M_cur->_M_next;
   if (!_M_cur) {
+    // hash值
     size_type __bucket = _M_ht->_M_bkt_num(__old->_M_val);
     while (!_M_cur && ++__bucket < _M_ht->_M_buckets.size())
       _M_cur = _M_ht->_M_buckets[__bucket];

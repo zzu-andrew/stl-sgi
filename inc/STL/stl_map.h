@@ -70,7 +70,8 @@ public:
   typedef _Tp                   mapped_type;
   typedef pair<const _Key, _Tp> value_type;
   typedef _Compare              key_compare;
-    
+
+  // 内部调用了传进来的对比仿函数，真实对比其实只是对比了first值
   class value_compare
     : public binary_function<value_type, value_type, bool> {
   friend class map<_Key,_Tp,_Compare,_Alloc>;
@@ -92,6 +93,7 @@ public:
   typedef typename _Rep_type::const_pointer const_pointer;
   typedef typename _Rep_type::reference reference;
   typedef typename _Rep_type::const_reference const_reference;
+  // 允许修改value
   typedef typename _Rep_type::iterator iterator;
   typedef typename _Rep_type::const_iterator const_iterator;
   typedef typename _Rep_type::reverse_iterator reverse_iterator;
