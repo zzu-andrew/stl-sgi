@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <memory>
+#include <numeric>
 
 #include <vector>
 
@@ -28,20 +29,23 @@ Sds GetBuffer(Sds * lpSds)
 }
 
 int main(int argc, char **argv) {
-    std::allocator<char> alloc;
 
 
-    Sds *lpSds = (Sds*)alloc.allocate(sizeof(Sds) + 124);
-    lpSds->length = 124;
+    std::vector<int> v = {1, 2, 3,4,5};
 
-    alloc.
+    // 打印原始序列
+    for (int i : v)
+        std::cout << i << ' ';
+    std::cout << '\n';
 
+    do {
+        // 打印当前排列
+        for (int i : v)
+            std::cout << i << ' ';
+        std::cout << '\n';
+    } while (std::next_permutation(v.begin(), v.end()));
 
-    auto sds = GetBuffer(lpSds);
-
-    printf("sds lpBuff = %p, o lp = %p\n", sds.buff, lpSds->buff);
-    alloc.deallocate()
-
+    return 0;
 
     return 0;
 }
