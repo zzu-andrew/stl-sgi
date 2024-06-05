@@ -130,6 +130,7 @@ partial_sum(_InputIterator __first, _InputIterator __last,
                        __binary_op);
 }
 
+// 这个函数的作用就是将_Tp 的类型提取出来
 template <class _InputIterator, class _OutputIterator, class _Tp>
 _OutputIterator 
 __adjacent_difference(_InputIterator __first, _InputIterator __last,
@@ -153,6 +154,9 @@ adjacent_difference(_InputIterator __first,
   __STL_REQUIRES(_OutputIterator, _OutputIterator);
   if (__first == __last) return __result;
   *__result = *__first;
+  // 再次调用时为了提取出一个_Tp，实际使用萃取技术也能对类型进行提取
+  // value_type 同样能通过萃取技术提取出来而不必再次经过模板函数
+  //iterator_traits<_InputIterator>::value_type = *first;
   return __adjacent_difference(__first, __last, __result,
                                __VALUE_TYPE(__first));
 }
