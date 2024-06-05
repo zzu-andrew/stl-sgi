@@ -51,6 +51,6 @@ int main() {
 
     int n = 3;
     iota(iv.begin(), iv.end(), n); // 填入n, n+1, n+2
-    for (int i = 0; i < iv.size(); ++i)
-        cout << iv[i] << ' ';
+    for (int i : iv)
+        cout << i << ' ';
 }
